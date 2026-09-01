@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Inter_Tight, Barlow_Condensed } from "next/font/google";
+import { Inter_Tight, Bebas_Neue } from "next/font/google";
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
@@ -7,9 +7,9 @@ const interTight = Inter_Tight({
   display: "swap",
 });
 
-const barlowCondensed = Barlow_Condensed({
+const bebasNeue = Bebas_Neue({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400"],
   variable: "--font-display",
   display: "swap",
 });
@@ -24,7 +24,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${interTight.variable} ${barlowCondensed.variable}`}>
+      <body className={`${interTight.variable} ${bebasNeue.variable}`}>
         {children}
       </body>
     </html>
