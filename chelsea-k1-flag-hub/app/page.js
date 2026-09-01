@@ -366,41 +366,58 @@ function DolphinsSnapshot({ standing, rank, latestFinal }) {
   const outcome = getDolphinsOutcome(latestFinal);
 
   return (
-    <section className="snapshot-grid">
-      <article className="snapshot-card strong">
-        <span className="snapshot-label">Dolphins rank</span>
-        <b>#{rank || "–"}</b>
-        <small>League position right now</small>
-      </article>
-      <article className="snapshot-card">
-        <span className="snapshot-label">Record</span>
-        <b>
-          {standing ? `${standing.wins}-${standing.losses}-${standing.ties}` : "–"}
-        </b>
-        <small>Wins • losses • ties</small>
-      </article>
-      <article className="snapshot-card">
-        <span className="snapshot-label">Points</span>
-        <b>
-          {standing ? `${standing.pointsFor} / ${standing.pointsAgainst}` : "–"}
-        </b>
-        <small>PF / PA</small>
-      </article>
-      <article className="snapshot-card">
-        <span className="snapshot-label">Latest result</span>
-        <b>
-          {outcome.result === "win"
-            ? `W ${outcome.dolphinsScore}-${outcome.opponentScore}`
-            : outcome.result === "loss"
-              ? `L ${outcome.dolphinsScore}-${outcome.opponentScore}`
-              : outcome.result === "tie"
-                ? `T ${outcome.dolphinsScore}-${outcome.opponentScore}`
-                : "No final yet"}
-        </b>
-        <small>
-          {outcome.opponent ? `vs ${teamMeta(outcome.opponent).short}` : "Waiting on first completed game"}
-        </small>
-      </article>
+    <section className="snapshot-shell">
+      <div className="snapshot-shell-head">
+        <div>
+          <span className="eyebrow">DOLPHINS CENTRAL</span>
+          <h3>TEAM SNAPSHOT</h3>
+        </div>
+        <p>Everything parents need at a glance.</p>
+      </div>
+
+      <div className="snapshot-grid">
+        <article className="snapshot-card strong">
+          <span className="snapshot-kicker">STANDING</span>
+          <span className="snapshot-label">Dolphins rank</span>
+          <b>#{rank || "–"}</b>
+          <small>League position right now</small>
+        </article>
+
+        <article className="snapshot-card">
+          <span className="snapshot-kicker">RECORD</span>
+          <span className="snapshot-label">Wins / losses / ties</span>
+          <b>
+            {standing ? `${standing.wins}-${standing.losses}-${standing.ties}` : "–"}
+          </b>
+          <small>Overall record this season</small>
+        </article>
+
+        <article className="snapshot-card">
+          <span className="snapshot-kicker">SCORING</span>
+          <span className="snapshot-label">Points for / against</span>
+          <b>
+            {standing ? `${standing.pointsFor} / ${standing.pointsAgainst}` : "–"}
+          </b>
+          <small>PF / PA</small>
+        </article>
+
+        <article className="snapshot-card">
+          <span className="snapshot-kicker">LATEST</span>
+          <span className="snapshot-label">Most recent result</span>
+          <b>
+            {outcome.result === "win"
+              ? `W ${outcome.dolphinsScore}-${outcome.opponentScore}`
+              : outcome.result === "loss"
+                ? `L ${outcome.dolphinsScore}-${outcome.opponentScore}`
+                : outcome.result === "tie"
+                  ? `T ${outcome.dolphinsScore}-${outcome.opponentScore}`
+                  : "No final yet"}
+          </b>
+          <small>
+            {outcome.opponent ? `vs ${teamMeta(outcome.opponent).short}` : "Waiting on first completed game"}
+          </small>
+        </article>
+      </div>
     </section>
   );
 }
