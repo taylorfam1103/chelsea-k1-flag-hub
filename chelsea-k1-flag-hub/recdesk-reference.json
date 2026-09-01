@@ -1,0 +1,15 @@
+{
+  "verified_on": "2026-09-01",
+  "league": "2026 K/1 Flag Football",
+  "teams": [
+    "Barr Cowboys",
+    "Birdsong Ravens",
+    "Davis Chiefs",
+    "Gibson Patriots",
+    "Gray Eagles",
+    "Hurston Titans",
+    "Sloan Steelers",
+    "Taylor Dolphins"
+  ],
+  "note": "Reference only. Production data is fetched from RecDesk by /api/league."
+}

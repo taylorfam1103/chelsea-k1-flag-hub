@@ -1,0 +1,9 @@
+{
+  "name": "Chelsea K/1 Flag Football",
+  "short_name": "Chelsea Flag",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06111b",
+  "theme_color": "#081521",
+  "icons": []
+}
