@@ -14,7 +14,6 @@ const TEAM_META = {
 };
 
 const DOLPHINS = "Taylor Dolphins";
-const PLAYOFF_SPOTS = 4;
 const RECDESK_LINK = "https://chelsea.recdesk.com/Community/League/Detail?leagueId=47523&divisionId=57145&mode=standings";
 const LAST_FINAL_KEY = "chelsea-k1-last-seen-dolphins-final";
 const RANK_SNAPSHOT_KEY = "chelsea-k1-rank-snapshot";
@@ -93,19 +92,60 @@ function TeamMark({ team, size = "md" }) {
   </div>;
 }
 
-function RefreshDot({ loading, error }) {
-  return <span className={`refresh-dot ${loading ? "is-loading" : ""} ${error ? "has-error" : ""}`} aria-hidden="true" />;
+function BroadcastHeader({ standing, rank, nextGame, now }) {
+  const record = standing ? `${standing.wins}-${standing.losses}-${standing.ties}` : "0-0-0";
+  const nextLabel = nextGame ? (sameDay(parseChelseaGameDate(nextGame), now) ? `TODAY • ${nextGame.time}` : `${formatGameDate(nextGame)} • ${nextGame.time}`) : "SCHEDULE COMPLETE";
+
+  return <header className="site-header broadcast-header">
+    <div className="broadcast-brand">
+      <div className="brand-mark"><span>CF</span><small>HQ</small></div>
+      <div className="brand-copy">
+        <div className="brand-overline">CHELSEA • K/1 FLAG FOOTBALL</div>
+        <div className="brand-title"><strong>FLAG</strong><b>HQ</b></div>
+        <div className="brand-subline"><span>2026 SEASON</span><i>LIVE LEAGUE CENTER</i></div>
+      </div>
+    </div>
+
+    <div className="dolphins-scorebug">
+      <div className="scorebug-accent" />
+      <TeamMark team={DOLPHINS} size="sm" />
+      <div className="scorebug-copy">
+        <span>DOLPHINS DESK</span>
+        <b>#{rank || "–"} <em>{record}</em></b>
+        <small>{nextLabel}</small>
+      </div>
+    </div>
+  </header>;
+}
+
+function TickerItem({ game, duplicate = false }) {
+  const home = teamMeta(game.homeTeam);
+  const away = teamMeta(game.awayTeam);
+  return <div className={`ticker-item ${isDolphinsGame(game) ? "ticker-dolphins" : ""}`} aria-hidden={duplicate ? "true" : undefined}>
+    <span className="ticker-status">{game.isFinal ? "FINAL" : formatGameDate(game)}</span>
+    <span className="ticker-team">{home.short}</span>
+    <b className="ticker-score">{game.isFinal ? game.homeScore : "VS"}</b>
+    <span className="ticker-team">{away.short}</span>
+    <b className="ticker-score">{game.isFinal ? game.awayScore : game.time}</b>
+  </div>;
 }
 
 function LeagueTicker({ games }) {
   const latestFinals = [...games].filter((g) => g.isFinal).slice(-4).reverse();
-  const nextGames = games.filter((g) => !g.isFinal).slice(0, 5);
+  const nextGames = games.filter((g) => !g.isFinal).slice(0, 6);
   const items = [...latestFinals, ...nextGames];
   if (!items.length) return null;
-  return <div className="ticker-shell"><div className="ticker-bug">LEAGUE DESK</div><div className="ticker-track">{items.map((game, idx) => {
-    const home = teamMeta(game.homeTeam); const away = teamMeta(game.awayTeam);
-    return <div className={`ticker-item ${isDolphinsGame(game) ? "ticker-dolphins" : ""}`} key={`${game.date}-${game.time}-${idx}`}><span className="ticker-status">{game.isFinal ? "FINAL" : formatGameDate(game)}</span><strong>{home.short}</strong><b>{game.isFinal ? game.homeScore : "vs"}</b><strong>{away.short}</strong><b>{game.isFinal ? game.awayScore : game.time}</b></div>;
-  })}</div></div>;
+
+  return <div className="ticker-shell">
+    <div className="ticker-bug"><span>LIVE</span><b>LEAGUE LINE</b></div>
+    <div className="ticker-viewport">
+      <div className="ticker-marquee">
+        <div className="ticker-group">{items.map((game, idx) => <TickerItem game={game} key={`a-${game.date}-${game.time}-${idx}`} />)}</div>
+        <div className="ticker-group" aria-hidden="true">{items.map((game, idx) => <TickerItem game={game} duplicate key={`b-${game.date}-${game.time}-${idx}`} />)}</div>
+      </div>
+    </div>
+    <div className="ticker-endcap">RECDESK DATA</div>
+  </div>;
 }
 
 function WinCelebrationOverlay({ game, onClose }) {
@@ -171,17 +211,6 @@ function Standings({ rows, movement = {} }) {
     const meta = teamMeta(row.team); const isDolphins = row.team === DOLPHINS; const move = movement[row.team];
     return <tr key={row.team} className={isDolphins ? "dolphins-row" : ""}><td className="rank"><span className="rank-pill">{index + 1}</span>{move && <span className={`rank-move ${move.direction}`}>{move.direction === "up" ? "▲" : "▼"}{move.amount}</span>}</td><td><div className="standings-team"><TeamMark team={row.team} size="sm" /><div><b>{meta.short}</b><small>{row.team.replace(meta.short, "").trim()}</small></div>{isDolphins && <span className="our-team">DOLPHINS</span>}</div></td><td className="record-win">{row.wins}</td><td>{row.losses}</td><td className="optional-col">{row.ties}</td><td>{row.percentage.toFixed(0)}%</td><td>{row.pointsFor}</td><td>{row.pointsAgainst}</td><td className={row.pointDiff > 0 ? "positive" : row.pointDiff < 0 ? "negative" : ""}>{row.pointDiff > 0 ? "+" : ""}{row.pointDiff}</td></tr>;
   })}</tbody></table></div>;
-}
-
-function PlayoffPicture({ standings, games }) {
-  const totalGamesByTeam = Object.fromEntries(standings.map((row) => [row.team, games.filter((g) => g.homeTeam === row.team || g.awayTeam === row.team).length]));
-  const outside = standings.slice(PLAYOFF_SPOTS);
-  const clinched = new Set();
-  standings.slice(0, PLAYOFF_SPOTS).forEach((row) => {
-    const allOutsideMax = outside.map((other) => other.wins + Math.max(0, (totalGamesByTeam[other.team] || 0) - (other.wins + other.losses + other.ties)));
-    if (allOutsideMax.length && allOutsideMax.every((max) => row.wins > max)) clinched.add(row.team);
-  });
-  return <section className="section-block playoff-shell"><div className="section-heading"><div><span className="eyebrow">CURRENT TOP 4</span><h2>Playoff Picture</h2><p className="section-sub">Projected from current RecDesk standings. Official playoff format may differ.</p></div></div><div className="playoff-list">{standings.slice(0, Math.min(6, standings.length)).map((row, index) => <div className="playoff-item-wrap" key={row.team}>{index === PLAYOFF_SPOTS && <div className="cut-line playoff-inline-cut"><span>PROJECTED CUT LINE</span></div>}<div className={`playoff-row ${index < PLAYOFF_SPOTS ? "in" : "out"} ${row.team === DOLPHINS ? "dolphins" : ""}`}><div className="playoff-rank">{index + 1}</div><TeamMark team={row.team} size="sm" /><div className="playoff-team"><b>{teamMeta(row.team).short}</b><span>{row.wins}-{row.losses}-{row.ties}</span></div>{clinched.has(row.team) ? <span className="clinch-badge">CLINCHED</span> : index < PLAYOFF_SPOTS ? <span className="projection-badge">IN</span> : <span className="projection-badge out">OUT</span>}</div></div>)}</div></section>;
 }
 
 function ScoreCard({ game }) {
@@ -291,7 +320,7 @@ export default function Home() {
     {celebrationGame && <WinCelebrationOverlay game={celebrationGame} onClose={() => setCelebrationGame(null)} />}
     {shareStatus && <div className="share-toast">{shareStatus}</div>}
 
-    <header className="site-header"><div className="brand"><div className="brand-ball">🏈</div><div><b>CHELSEA FLAG HQ</b><span>K/1 • 2026 SEASON</span></div></div><div className="live-cluster"><div className="live-chip"><RefreshDot loading={loading} error={error} /><span>{error ? "RETRYING" : "AUTO UPDATING"}</span></div><small>Unofficial parent hub • Official data: RecDesk</small></div></header>
+    <BroadcastHeader standing={dolphinsStanding} rank={dolphinsRank} nextGame={dolphinsNext} now={now} />
     <nav className="tabs" aria-label="League sections">{[["home", "Home"], ["standings", "Standings"], ["schedule", "Schedule"]].map(([key, label]) => <button key={key} className={tab === key ? "active" : ""} onClick={() => setTab(key)}>{label}</button>)}</nav>
     {data && <LeagueTicker games={sortedGames} />}
 
@@ -304,13 +333,12 @@ export default function Home() {
         <DolphinsSnapshot standing={dolphinsStanding} rank={dolphinsRank} latestFinal={latestDolphinsFinal} />
         <SeasonStrip games={sortedGames} now={now} onShare={shareResult} />
         <section className="section-block"><div className="section-heading"><div><span className="eyebrow">LEAGUE TABLE</span><h2>Standings</h2></div><button className="text-button" onClick={() => setTab("standings")}>Full standings →</button></div><Standings rows={data.standings} movement={rankMovement} /></section>
-        <PlayoffPicture standings={data.standings} games={sortedGames} />
         <div className="home-grid"><section className="section-block"><div className="section-heading"><div><span className="eyebrow">SCORES</span><h2>Latest Results</h2></div></div>{finalGames.length ? <div className="score-grid compact">{finalGames.map((game, idx) => <ScoreCard game={game} key={`final-${idx}`} />)}</div> : <div className="empty-state"><span>🏈</span><b>No final scores yet</b><p>As Chelsea Rec enters scores, they’ll appear here automatically.</p></div>}</section><section className="section-block"><div className="section-heading"><div><span className="eyebrow">COMING UP</span><h2>Next Games</h2></div><button className="text-button" onClick={() => setTab("schedule")}>Full schedule →</button></div><div className="score-grid compact">{nextLeagueGames.map((game, idx) => <ScoreCard game={game} key={`next-${idx}`} />)}</div></section></div>
       </div>}
-      {tab === "standings" && <div className="page-content"><section className="section-block standings-page"><div className="section-heading"><div><span className="eyebrow">2026 K/1 FLAG FOOTBALL</span><h1>League Standings</h1><p className="section-sub">Official records pulled directly from Chelsea RecDesk.</p></div></div><Standings rows={data.standings} movement={rankMovement} /><p className="standings-note">Standings order follows the order published by Chelsea RecDesk. Point differential is calculated from official points for and against.</p><PlayoffPicture standings={data.standings} games={sortedGames} /></section></div>}
+      {tab === "standings" && <div className="page-content"><section className="section-block standings-page"><div className="section-heading"><div><span className="eyebrow">2026 K/1 FLAG FOOTBALL</span><h1>League Standings</h1><p className="section-sub">Official records pulled directly from Chelsea RecDesk.</p></div></div><Standings rows={data.standings} movement={rankMovement} /><p className="standings-note">Standings order follows the order published by Chelsea RecDesk. Point differential is calculated from official points for and against.</p></section></div>}
       {tab === "schedule" && <div className="page-content"><section className="section-block schedule-page"><div className="section-heading schedule-heading"><div><span className="eyebrow">2026 K/1 FLAG FOOTBALL</span><h1>Schedule & Scores</h1></div><div className="segmented"><button className={scheduleFilter === "dolphins" ? "active" : ""} onClick={() => setScheduleFilter("dolphins")}>🐬 Dolphins</button><button className={scheduleFilter === "all" ? "active" : ""} onClick={() => setScheduleFilter("all")}>All Teams</button></div></div><ScheduleList games={sortedGames} onlyDolphins={scheduleFilter === "dolphins"} /></section></div>}
     </>}
 
-    <footer><div><b>CHELSEA FLAG HQ</b><span>{updated ? `Last checked ${updated}` : "Connecting to RecDesk…"}</span><span>Unofficial parent hub. Chelsea RecDesk remains the official source.</span></div><a href={RECDESK_LINK} target="_blank" rel="noreferrer">Official RecDesk ↗</a></footer>
+    <footer><div><b>CHELSEA FLAG HQ</b><span>{updated ? `Last checked ${updated}` : "Connecting to RecDesk…"}</span><span>Scores, schedule and standings powered by Chelsea RecDesk.</span></div><a href={RECDESK_LINK} target="_blank" rel="noreferrer">Official RecDesk ↗</a></footer>
   </main>;
 }
