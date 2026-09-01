@@ -56,6 +56,24 @@ const TEAM_META = {
 const DOLPHINS = "Taylor Dolphins";
 const RECDESK_LINK =
   "https://chelsea.recdesk.com/Community/League/Detail?leagueId=47523&divisionId=57145&mode=standings";
+const STORAGE_KEY = "chelsea-k1-last-seen-dolphins-final";
+const CONFETTI = [
+  { left: "6%", delay: "0s", dur: "3.8s", rot: "18deg" },
+  { left: "12%", delay: ".4s", dur: "4.4s", rot: "-8deg" },
+  { left: "18%", delay: ".8s", dur: "4.2s", rot: "22deg" },
+  { left: "24%", delay: "1.1s", dur: "4.8s", rot: "-14deg" },
+  { left: "31%", delay: ".1s", dur: "4.6s", rot: "10deg" },
+  { left: "38%", delay: ".6s", dur: "4.9s", rot: "-26deg" },
+  { left: "44%", delay: ".2s", dur: "3.9s", rot: "15deg" },
+  { left: "50%", delay: "1s", dur: "4.3s", rot: "-12deg" },
+  { left: "57%", delay: ".3s", dur: "4.6s", rot: "26deg" },
+  { left: "63%", delay: ".9s", dur: "4.1s", rot: "-4deg" },
+  { left: "70%", delay: ".2s", dur: "4.7s", rot: "30deg" },
+  { left: "76%", delay: "1.2s", dur: "4.4s", rot: "-18deg" },
+  { left: "82%", delay: ".7s", dur: "4.0s", rot: "9deg" },
+  { left: "88%", delay: ".5s", dur: "4.8s", rot: "-28deg" },
+  { left: "94%", delay: ".15s", dur: "3.7s", rot: "13deg" },
+];
 
 function teamMeta(name) {
   return (
@@ -116,6 +134,38 @@ function formatGameDate(game, includeYear = false) {
   }).format(date);
 }
 
+function gameSignature(game) {
+  return [
+    game.date,
+    game.time,
+    game.homeTeam,
+    game.awayTeam,
+    game.homeScore,
+    game.awayScore,
+  ].join("|");
+}
+
+function isDolphinsGame(game) {
+  return game.homeTeam === DOLPHINS || game.awayTeam === DOLPHINS;
+}
+
+function getDolphinsOutcome(game) {
+  if (!game || !game.isFinal || !isDolphinsGame(game)) {
+    return { result: "none", dolphinsScore: null, opponentScore: null, opponent: null };
+  }
+
+  const dolphinsHome = game.homeTeam === DOLPHINS;
+  const dolphinsScore = dolphinsHome ? game.homeScore : game.awayScore;
+  const opponentScore = dolphinsHome ? game.awayScore : game.homeScore;
+  const opponent = dolphinsHome ? game.awayTeam : game.homeTeam;
+
+  let result = "tie";
+  if (dolphinsScore > opponentScore) result = "win";
+  if (dolphinsScore < opponentScore) result = "loss";
+
+  return { result, dolphinsScore, opponentScore, opponent };
+}
+
 function TeamMark({ team, size = "md" }) {
   const meta = teamMeta(team);
   return (
@@ -144,6 +194,75 @@ function RefreshDot({ loading, error }) {
       className={`refresh-dot ${loading ? "is-loading" : ""} ${error ? "has-error" : ""}`}
       aria-hidden="true"
     />
+  );
+}
+
+function WinCelebrationOverlay({ game, onClose }) {
+  const outcome = getDolphinsOutcome(game);
+  if (!game || outcome.result !== "win") return null;
+
+  const opponentMeta = teamMeta(outcome.opponent);
+
+  return (
+    <div className="celebration-overlay" role="dialog" aria-modal="true" aria-label="Dolphins win celebration">
+      <div className="celebration-backdrop" onClick={onClose} />
+      <div className="celebration-flash flash-1" />
+      <div className="celebration-flash flash-2" />
+      <div className="celebration-flash flash-3" />
+      {CONFETTI.map((piece, idx) => (
+        <span
+          key={idx}
+          className={`confetti-piece ${idx % 2 === 0 ? "aqua" : "orange"}`}
+          style={{
+            left: piece.left,
+            animationDelay: piece.delay,
+            animationDuration: piece.dur,
+            "--piece-rotate": piece.rot,
+          }}
+        />
+      ))}
+      <div className="celebration-card">
+        <button className="celebration-close" onClick={onClose} aria-label="Close celebration">
+          ×
+        </button>
+        <div className="celebration-topline">
+          <div className="celebration-pill">FINAL</div>
+          <div className="celebration-network-bug">DOLPHINS HQ</div>
+        </div>
+
+        <div className="celebration-logo-ring">
+          <TeamMark team={DOLPHINS} size="xl" />
+        </div>
+
+        <div className="celebration-copy">
+          <div className="eyebrow">MAKE WAVES • BIG WIN</div>
+          <h2>DOLPHINS WIN!!!</h2>
+          <p>
+            {formatGameDate(game)} • {game.time}
+          </p>
+        </div>
+
+        <div className="celebration-scoreboard">
+          <div className="celebration-side left">
+            <TeamMark team={DOLPHINS} size="md" />
+            <strong>DOLPHINS</strong>
+          </div>
+          <div className="celebration-score">
+            <span>{outcome.dolphinsScore}</span>
+            <small>-</small>
+            <span>{outcome.opponentScore}</span>
+          </div>
+          <div className="celebration-side right">
+            <TeamMark team={outcome.opponent} size="md" />
+            <strong>{opponentMeta.short.toUpperCase()}</strong>
+          </div>
+        </div>
+
+        <p className="celebration-subline">
+          Taylor Dolphins defeated {outcome.opponent}. Share it with the group chat. 🐬🏈
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -187,7 +306,7 @@ function ScoreCard({ game }) {
   );
 }
 
-function NextGameHero({ game }) {
+function NextGameHero({ game, onReplayWin, canReplayWin }) {
   if (!game) {
     return (
       <section className="next-game hero-panel">
@@ -198,21 +317,34 @@ function NextGameHero({ game }) {
     );
   }
 
-  const opponent =
-    game.homeTeam === DOLPHINS ? game.awayTeam : game.homeTeam;
+  const opponent = game.homeTeam === DOLPHINS ? game.awayTeam : game.homeTeam;
   const dolphinsHome = game.homeTeam === DOLPHINS;
   const opponentMeta = teamMeta(opponent);
 
   return (
     <section className="next-game hero-panel">
       <div className="hero-panel-glow" />
+      <div className="hero-stripe" />
       <div className="next-copy">
-        <div className="eyebrow">🐬 DOLPHINS NEXT GAME</div>
+        <div className="hero-kicker-row">
+          <div className="hero-bug">LEAGUE HQ</div>
+          <div className="eyebrow">🐬 DOLPHINS NEXT GAME</div>
+        </div>
         <div className="next-date">
           {formatGameDate(game)} <span>•</span> {game.time}
         </div>
         <h2>{dolphinsHome ? "Dolphins vs." : "Dolphins at"} {opponentMeta.short}</h2>
         <p>{game.facility}</p>
+        <div className="hero-actions">
+          <a href={RECDESK_LINK} target="_blank" rel="noreferrer" className="primary-link-btn">
+            Full league page ↗
+          </a>
+          {canReplayWin && (
+            <button className="secondary-ghost-btn" onClick={onReplayWin}>
+              Replay Dolphins win 🎉
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="matchup-lockup">
@@ -226,6 +358,49 @@ function NextGameHero({ game }) {
           <b>{opponentMeta.short.toUpperCase()}</b>
         </div>
       </div>
+    </section>
+  );
+}
+
+function DolphinsSnapshot({ standing, rank, latestFinal }) {
+  const outcome = getDolphinsOutcome(latestFinal);
+
+  return (
+    <section className="snapshot-grid">
+      <article className="snapshot-card strong">
+        <span className="snapshot-label">Dolphins rank</span>
+        <b>#{rank || "–"}</b>
+        <small>League position right now</small>
+      </article>
+      <article className="snapshot-card">
+        <span className="snapshot-label">Record</span>
+        <b>
+          {standing ? `${standing.wins}-${standing.losses}-${standing.ties}` : "–"}
+        </b>
+        <small>Wins • losses • ties</small>
+      </article>
+      <article className="snapshot-card">
+        <span className="snapshot-label">Points</span>
+        <b>
+          {standing ? `${standing.pointsFor} / ${standing.pointsAgainst}` : "–"}
+        </b>
+        <small>PF / PA</small>
+      </article>
+      <article className="snapshot-card">
+        <span className="snapshot-label">Latest result</span>
+        <b>
+          {outcome.result === "win"
+            ? `W ${outcome.dolphinsScore}-${outcome.opponentScore}`
+            : outcome.result === "loss"
+              ? `L ${outcome.dolphinsScore}-${outcome.opponentScore}`
+              : outcome.result === "tie"
+                ? `T ${outcome.dolphinsScore}-${outcome.opponentScore}`
+                : "No final yet"}
+        </b>
+        <small>
+          {outcome.opponent ? `vs ${teamMeta(outcome.opponent).short}` : "Waiting on first completed game"}
+        </small>
+      </article>
     </section>
   );
 }
@@ -263,7 +438,7 @@ function Standings({ rows }) {
                       <b>{meta.short}</b>
                       <small>{row.team.replace(meta.short, "").trim()}</small>
                     </div>
-                    {isDolphins && <span className="our-team">OUR TEAM</span>}
+                    {isDolphins && <span className="our-team">DOLPHINS</span>}
                   </div>
                 </td>
                 <td className="record-win">{row.wins}</td>
@@ -304,8 +479,7 @@ function ScheduleList({ games, onlyDolphins }) {
             {dateGames.map((game, idx) => {
               const home = teamMeta(game.homeTeam);
               const away = teamMeta(game.awayTeam);
-              const dolphinsGame =
-                game.homeTeam === DOLPHINS || game.awayTeam === DOLPHINS;
+              const dolphinsGame = isDolphinsGame(game);
 
               return (
                 <div className={`schedule-game ${dolphinsGame ? "dolphins-game" : ""}`} key={`${date}-${game.time}-${idx}`}>
@@ -341,6 +515,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("home");
   const [scheduleFilter, setScheduleFilter] = useState("dolphins");
+  const [celebrationGame, setCelebrationGame] = useState(null);
 
   async function load(silent = false) {
     if (!silent) setLoading(true);
@@ -376,24 +551,38 @@ export default function Home() {
     });
   }, [data]);
 
-  const finalGames = useMemo(
-    () => sortedGames.filter((g) => g.isFinal).slice(-4).reverse(),
-    [sortedGames]
-  );
+  const finalGames = useMemo(() => sortedGames.filter((g) => g.isFinal).slice(-4).reverse(), [sortedGames]);
 
   const upcomingGames = useMemo(() => {
     const now = Date.now();
-    return sortedGames.filter((g) => !g.isFinal && (parseChelseaGameDate(g)?.getTime() ?? Infinity) >= now);
+    return sortedGames.filter(
+      (g) => !g.isFinal && (parseChelseaGameDate(g)?.getTime() ?? Infinity) >= now
+    );
   }, [sortedGames]);
 
   const dolphinsNext = useMemo(
-    () =>
-      upcomingGames.find(
-        (g) => g.homeTeam === DOLPHINS || g.awayTeam === DOLPHINS
-      ),
+    () => upcomingGames.find((g) => isDolphinsGame(g)),
     [upcomingGames]
   );
 
+  const latestDolphinsFinal = useMemo(() => {
+    const finals = sortedGames.filter((g) => g.isFinal && isDolphinsGame(g));
+    return finals.length ? finals[finals.length - 1] : null;
+  }, [sortedGames]);
+
+  const dolphinsStanding = useMemo(
+    () => data?.standings?.find((row) => row.team === DOLPHINS) ?? null,
+    [data]
+  );
+
+  const dolphinsRank = useMemo(() => {
+    if (!data?.standings) return null;
+    const index = data.standings.findIndex((row) => row.team === DOLPHINS);
+    return index > -1 ? index + 1 : null;
+  }, [data]);
+
+  const dolphinsLatestOutcome = getDolphinsOutcome(latestDolphinsFinal);
+  const canReplayWin = dolphinsLatestOutcome.result === "win";
   const nextLeagueGames = upcomingGames.slice(0, 4);
 
   const updated = data?.fetchedAt
@@ -404,8 +593,38 @@ export default function Home() {
       }).format(new Date(data.fetchedAt))
     : null;
 
+  useEffect(() => {
+    if (!latestDolphinsFinal) return;
+
+    const key = gameSignature(latestDolphinsFinal);
+    const seen = window.localStorage.getItem(STORAGE_KEY);
+
+    if (!seen) {
+      window.localStorage.setItem(STORAGE_KEY, key);
+      return;
+    }
+
+    if (seen !== key) {
+      window.localStorage.setItem(STORAGE_KEY, key);
+      if (getDolphinsOutcome(latestDolphinsFinal).result === "win") {
+        setCelebrationGame(latestDolphinsFinal);
+      }
+    }
+  }, [latestDolphinsFinal]);
+
+  useEffect(() => {
+    document.body.style.overflow = celebrationGame ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [celebrationGame]);
+
   return (
     <main>
+      {celebrationGame && (
+        <WinCelebrationOverlay game={celebrationGame} onClose={() => setCelebrationGame(null)} />
+      )}
+
       <header className="site-header">
         <div className="brand">
           <div className="brand-ball">🏈</div>
@@ -415,9 +634,12 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="live-chip">
-          <RefreshDot loading={loading} error={error} />
-          <span>{error ? "RETRYING" : "AUTO UPDATING"}</span>
+        <div className="live-cluster">
+          <div className="live-chip">
+            <RefreshDot loading={loading} error={error} />
+            <span>{error ? "RETRYING" : "AUTO UPDATING"}</span>
+          </div>
+          <small>Official source: Chelsea RecDesk</small>
         </div>
       </header>
 
@@ -427,11 +649,7 @@ export default function Home() {
           ["standings", "Standings"],
           ["schedule", "Schedule"],
         ].map(([key, label]) => (
-          <button
-            key={key}
-            className={tab === key ? "active" : ""}
-            onClick={() => setTab(key)}
-          >
+          <button key={key} className={tab === key ? "active" : ""} onClick={() => setTab(key)}>
             {label}
           </button>
         ))}
@@ -460,7 +678,17 @@ export default function Home() {
         <>
           {tab === "home" && (
             <div className="page-content">
-              <NextGameHero game={dolphinsNext} />
+              <NextGameHero
+                game={dolphinsNext}
+                canReplayWin={canReplayWin}
+                onReplayWin={() => setCelebrationGame(latestDolphinsFinal)}
+              />
+
+              <DolphinsSnapshot
+                standing={dolphinsStanding}
+                rank={dolphinsRank}
+                latestFinal={latestDolphinsFinal}
+              />
 
               <section className="section-block">
                 <div className="section-heading">
@@ -532,8 +760,8 @@ export default function Home() {
                 </div>
                 <Standings rows={data.standings} />
                 <p className="standings-note">
-                  Standings order follows the order published by Chelsea RecDesk. Point
-                  differential is calculated from official points for and against.
+                  Standings order follows the order published by Chelsea RecDesk. Point differential is
+                  calculated from official points for and against.
                 </p>
               </section>
             </div>
@@ -564,10 +792,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <ScheduleList
-                  games={sortedGames}
-                  onlyDolphins={scheduleFilter === "dolphins"}
-                />
+                <ScheduleList games={sortedGames} onlyDolphins={scheduleFilter === "dolphins"} />
               </section>
             </div>
           )}
@@ -577,9 +802,7 @@ export default function Home() {
       <footer>
         <div>
           <b>Chelsea K/1 Flag Football</b>
-          <span>
-            {updated ? `Last checked ${updated}` : "Connecting to RecDesk…"}
-          </span>
+          <span>{updated ? `Last checked ${updated}` : "Connecting to RecDesk…"}</span>
         </div>
         <a href={RECDESK_LINK} target="_blank" rel="noreferrer">
           Official RecDesk ↗
