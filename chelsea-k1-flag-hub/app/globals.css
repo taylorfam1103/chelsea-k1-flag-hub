@@ -1561,3 +1561,106 @@ footer a {
     font-size: 13px;
   }
 }
+
+/* ===== Final product additions ===== */
+.ticker-shell { width:100%; display:flex; align-items:stretch; min-height:50px; border-bottom:1px solid var(--line); background:rgba(4,12,18,.92); position:relative; z-index:30; }
+.ticker-bug { flex:0 0 auto; min-width:118px; display:grid; place-items:center; padding:0 14px; background:linear-gradient(135deg,var(--aqua),#0d6870); color:#fff; font-family:var(--font-display),Impact,sans-serif; font-size:18px; letter-spacing:.06em; line-height:.9; }
+.ticker-track { min-width:0; flex:1; display:flex; align-items:stretch; overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain; scroll-snap-type:x proximity; }
+.ticker-track::-webkit-scrollbar { display:none; }
+.ticker-item { flex:0 0 auto; display:flex; align-items:center; gap:8px; min-width:max-content; padding:0 17px; border-right:1px solid var(--line); scroll-snap-align:start; font-size:12px; }
+.ticker-item.ticker-dolphins { background:rgba(0,166,178,.09); }
+.ticker-status { color:#84e7ed; font-family:var(--font-display),Impact,sans-serif; letter-spacing:.07em; font-size:14px; }
+.ticker-item strong { font-size:13px; }
+.ticker-item b { color:#fff; font-variant-numeric:tabular-nums; }
+
+.game-day { background:radial-gradient(circle at 78% 42%,rgba(252,76,2,.18),transparent 28%),radial-gradient(circle at 18% 25%,rgba(0,166,178,.28),transparent 34%),linear-gradient(110deg,#073943,#07131f 52%,#3e1b13); }
+.game-day::before { content:"GAME DAY"; position:absolute; right:2%; bottom:-26px; font-family:var(--font-display),Impact,sans-serif; font-size:clamp(86px,12vw,170px); letter-spacing:.02em; color:rgba(255,255,255,.025); white-space:nowrap; pointer-events:none; }
+.countdown-chip { width:fit-content; margin-top:16px; display:inline-flex; align-items:baseline; gap:8px; padding:8px 12px; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.2); border-radius:12px; color:#c9d8e1; font-size:12px; font-weight:800; letter-spacing:.08em; }
+.countdown-chip strong { font-family:var(--font-display),Impact,sans-serif; color:#fff; font-size:24px; line-height:.8; }
+
+.result-hero { min-height:290px; padding:clamp(24px,4vw,44px); display:flex; align-items:center; justify-content:space-between; gap:34px; background:radial-gradient(circle at 76% 38%,rgba(255,255,255,.05),transparent 28%),linear-gradient(115deg,rgba(0,166,178,.34),rgba(7,20,31,.97) 48%,rgba(252,76,2,.14)); }
+.result-hero.win { box-shadow:0 24px 70px rgba(0,166,178,.14); }
+.result-copy h2 { margin:10px 0 2px; font-family:var(--font-display),Impact,sans-serif; font-size:clamp(58px,6vw,96px); line-height:.82; letter-spacing:.015em; }
+.result-score-line { display:flex; align-items:baseline; gap:12px; margin-top:12px; font-family:var(--font-display),Impact,sans-serif; font-size:clamp(74px,8vw,122px); line-height:.78; }
+.result-score-line small { color:#89a1b0; font-size:.38em; }
+.result-copy p { color:#b9ccd8; margin:13px 0 0; }
+.result-lockup .versus { font-size:15px; }
+
+.season-shell { padding:0; }
+.compact-heading { margin-bottom:12px; }
+.season-strip { display:flex; gap:9px; overflow-x:auto; padding:1px 1px 8px; scrollbar-width:none; scroll-snap-type:x proximity; }
+.season-strip::-webkit-scrollbar { display:none; }
+.season-pill { flex:0 0 92px; min-height:82px; padding:10px 10px 9px; display:grid; align-content:space-between; text-align:left; border:1px solid var(--line); border-radius:17px; background:rgba(9,21,32,.88); cursor:pointer; scroll-snap-align:start; transition:transform .18s ease,border-color .18s ease,background .18s ease; }
+.season-pill.active { transform:translateY(-2px); border-color:rgba(95,233,239,.55); background:linear-gradient(150deg,rgba(0,166,178,.18),rgba(9,21,32,.96)); }
+.season-pill>span { width:fit-content; min-width:26px; height:23px; display:grid; place-items:center; border-radius:999px; background:rgba(255,255,255,.07); font-family:var(--font-display),Impact,sans-serif; font-size:14px; }
+.season-pill.win>span { background:rgba(54,215,143,.14); color:var(--green); }
+.season-pill.loss>span { background:rgba(255,102,120,.12); color:var(--red); }
+.season-pill.upcoming>span { background:rgba(0,166,178,.14); color:var(--aqua-2); }
+.season-pill b { font-size:14px; }
+.season-pill small { color:var(--muted); font-size:10px; white-space:nowrap; }
+.season-detail { margin-top:4px; min-height:64px; padding:11px 13px; display:flex; align-items:center; gap:11px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.025); }
+.season-detail div { min-width:0; }
+.season-detail span { display:block; color:#7bdce3; font-family:var(--font-display),Impact,sans-serif; font-size:13px; letter-spacing:.08em; }
+.season-detail b { display:block; margin-top:3px; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.rank-move { display:block; margin-top:3px; font-size:9px; font-weight:900; }
+.rank-move.up { color:var(--green); }
+.rank-move.down { color:var(--red); }
+
+.playoff-shell { position:relative; }
+.playoff-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.playoff-item-wrap { min-width:0; }
+.playoff-row { min-height:68px; display:grid; grid-template-columns:34px 40px 1fr auto; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--line); border-radius:17px; background:rgba(9,21,32,.86); position:relative; }
+.playoff-row.in { background:linear-gradient(90deg,rgba(0,166,178,.08),rgba(9,21,32,.92)); }
+.playoff-row.out { opacity:.72; }
+.playoff-row.dolphins { border-color:rgba(95,233,239,.36); box-shadow:inset 3px 0 0 var(--aqua); }
+.playoff-rank { font-family:var(--font-display),Impact,sans-serif; font-size:24px; color:#8da5b4; text-align:center; }
+.playoff-team b { display:block; font-size:16px; }
+.playoff-team span { display:block; margin-top:2px; color:var(--muted); font-size:11px; }
+.projection-badge,.clinch-badge { min-width:44px; height:25px; display:grid; place-items:center; padding:0 8px; border-radius:999px; font-family:var(--font-display),Impact,sans-serif; font-size:13px; letter-spacing:.06em; }
+.projection-badge { color:#8ef3f8; background:rgba(0,166,178,.12); border:1px solid rgba(0,166,178,.22); }
+.projection-badge.out { color:#8ca0ae; background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.08); }
+.clinch-badge { color:#07130d; background:var(--green); }
+.cut-line { margin:10px 0 0; display:flex; align-items:center; gap:10px; color:#70899a; font-family:var(--font-display),Impact,sans-serif; font-size:12px; letter-spacing:.1em; }
+.cut-line::before,.cut-line::after { content:""; height:1px; flex:1; background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent); }
+.playoff-inline-cut { margin:0 0 8px; }
+
+.share-toast { position:fixed; z-index:300; left:50%; bottom:24px; transform:translateX(-50%); padding:10px 14px; border-radius:999px; background:#f7fbff; color:#06111b; font-size:13px; font-weight:800; box-shadow:0 10px 30px rgba(0,0,0,.3); }
+
+@media (min-width:761px) {
+  .playoff-item-wrap:nth-child(5) { grid-column:1 / 2; }
+  .playoff-item-wrap:nth-child(5) .playoff-inline-cut { width:calc(200% + 10px); }
+}
+
+@media (max-width:760px) {
+  .ticker-shell { min-height:46px; }
+  .ticker-bug { min-width:88px; padding:0 9px; font-size:15px; }
+  .ticker-item { padding:0 11px; gap:6px; font-size:11px; }
+  .ticker-status { font-size:12px; }
+  .ticker-item strong { font-size:12px; }
+  .game-day::before { font-size:96px; bottom:-14px; right:-8%; }
+  .result-hero { min-height:0; display:block; padding:22px 18px; }
+  .result-copy h2 { font-size:56px; }
+  .result-score-line { font-size:82px; }
+  .result-lockup { margin-top:24px; justify-content:flex-start; }
+  .playoff-list { grid-template-columns:1fr; }
+  .playoff-row { min-height:64px; grid-template-columns:30px 36px 1fr auto; padding:9px 10px; }
+  .season-pill { flex-basis:84px; min-height:78px; }
+}
+
+@media (max-width:420px) {
+  .ticker-bug { min-width:76px; font-size:13px; }
+  .ticker-item { padding:0 9px; }
+  .countdown-chip { margin-top:13px; }
+  .countdown-chip strong { font-size:21px; }
+  .season-strip { margin-right:-11px; padding-right:11px; }
+  .playoff-rank { font-size:21px; }
+  .projection-badge,.clinch-badge { min-width:38px; font-size:11px; padding:0 6px; }
+  .result-copy h2 { font-size:48px; }
+  .result-score-line { font-size:72px; }
+}
+
+.season-pill.pending > span { background: rgba(255,255,255,.06); color:#9db0bd; }
+.season-detail { position:relative; }
+.season-detail > div:nth-child(2) { flex:1; }
+.season-share-btn { flex:0 0 auto; min-height:34px; padding:0 12px; border:1px solid rgba(95,233,239,.25); border-radius:10px; background:rgba(0,166,178,.1); color:#a6f4f8; font-size:12px; font-weight:800; cursor:pointer; }
