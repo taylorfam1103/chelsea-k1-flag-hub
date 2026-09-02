@@ -154,8 +154,19 @@ function parseSchedule(tokens, standings) {
       const first = teamPositions[0];
       const second = teamPositions[1];
       const between = block.slice(first.index + 1, second.index);
-      const scoreToken = between.find((x) => SCORE_RE.test(x)) || "-vs-";
-      const scoreMatch = scoreToken.match(SCORE_RE);
+
+      // RecDesk sometimes renders a completed score as one text node ("12 vs 30")
+      // and sometimes as multiple nested nodes ("12", "vs", "30"). Joining the
+      // tokens makes the parser resilient to either markup shape.
+      const scoreText = between
+        .join(" ")
+        .replace(/[–—−]/g, "-")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const scoreMatch = scoreText.match(
+        /(\d{1,3})\s*(?:[-:]?\s*)?vs\.?\s*(?:[-:]?\s*)?(\d{1,3})/i
+      );
       const facilityParts = block.slice(0, first.index).filter(
         (x) =>
           !/^Select$/i.test(x) &&
