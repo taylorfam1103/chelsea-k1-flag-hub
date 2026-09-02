@@ -282,7 +282,11 @@ export default function Home() {
     if (!latestDolphinsFinal) return;
     const key = gameSignature(latestDolphinsFinal);
     const seen = window.localStorage.getItem(LAST_FINAL_KEY);
-    if (!seen) { window.localStorage.setItem(LAST_FINAL_KEY, key); return; }
+    if (!seen) {
+      window.localStorage.setItem(LAST_FINAL_KEY, key);
+      if (getDolphinsOutcome(latestDolphinsFinal).result === "win") setCelebrationGame(latestDolphinsFinal);
+      return;
+    }
     if (seen !== key) { window.localStorage.setItem(LAST_FINAL_KEY, key); if (getDolphinsOutcome(latestDolphinsFinal).result === "win") setCelebrationGame(latestDolphinsFinal); }
   }, [latestDolphinsFinal]);
 
